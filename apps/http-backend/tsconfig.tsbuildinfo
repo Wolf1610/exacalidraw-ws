@@ -1,0 +1,1 @@
+{"root":["./types.d.ts","./src/index.ts","./src/middleware/middleware.ts","./src/routes/authRoutes.ts","./src/routes/chat.ts","./src/routes/room.ts"],"version":"5.8.2"}
