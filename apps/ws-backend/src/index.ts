@@ -89,6 +89,7 @@ wss.on("connection", function connection(ws, request) {
             // msg push it to a queue, through a pieline push it to DB eventually
 
             // Dumb approach is
+            // First store all msg in the db
             await client.chat.create({
                 data: {
                     roomId,
@@ -96,6 +97,8 @@ wss.on("connection", function connection(ws, request) {
                     userId
                 }
             })
+
+            // find that userId, those are subscribe to that roomId, send them all msg from db
 
             users.forEach(user => {
                 if (user.rooms.includes(roomId)) {
