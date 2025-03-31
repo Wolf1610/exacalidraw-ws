@@ -149,10 +149,10 @@ authRouter.post("/room",middleware as any , async (req: Request, res: Response):
     
 });
 
-
 authRouter.get("/chat/:roomId", async (req: Request, res: Response): Promise<Response| any> => {
     try {
         const roomId = Number(req.params.roomId);
+        console.log(roomId);    
         const messages = await client.chat.findMany({
             where: {
                 roomId: roomId
@@ -169,7 +169,7 @@ authRouter.get("/chat/:roomId", async (req: Request, res: Response): Promise<Res
     } catch (error) {
         console.log(error);
         res.json({
-            message: "Error in /chat/:rooId endpoint."
+            message: "Error in /chat/:roomId endpoint."
         })
     }
 

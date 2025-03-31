@@ -10,7 +10,7 @@ function checkUser (token: string): string | null {
     try {
         const decoded = jwt.verify(token, JWT) as JwtPayload;
 
-        console.log(decoded.id);
+        // console.log(decoded.id);
 
         if(typeof decoded == "string") {
             return null;
@@ -49,7 +49,7 @@ wss.on("connection", function connection(ws, request) {
     const token = queryParams.get('token') || "";
     // console.log(token);
     const userId = checkUser(token);    
-    console.log(userId);
+    // console.log(userId);
     
     if (!userId) {
         ws.close();
@@ -62,10 +62,35 @@ wss.on("connection", function connection(ws, request) {
         ws
     });    
  
-
+    
     ws.on("message", async function message(data) {
 
-        const parsedData = JSON.parse(data as unknown as string);
+        let parsedData;
+
+
+        if(typeof data !== "string") {
+            
+            parsedData = JSON.parse(data.toString());
+            // console.log(parsedData);
+        } else {
+            parsedData = JSON.parse(data);
+        }
+
+        // console.log(parsedData);
+
+        // let y = JSON.parse(parsedData)
+        // let x = y;
+        // // let z = JSON.stringify(y);
+        // // console.log(JSON.parse(parsedData));
+        // // console.log("x type----->>>>>",typeof x);
+        // // console.log("x----->>>>>",x.message);
+        // // if(!x.message.shape) return  null;
+        
+        // if(!x.message) return  null;
+        
+        // let finalDrawData = JSON.parse(x.message);
+        // console.log("Final Draw Data ---->>>", finalDrawData.shape);
+        // console.log("Final Draw Data ---->>>", JSON.stringify(finalDrawData.shape));
 
         if (parsedData.type === "join_room") {
             const user = users.find(x => x.ws === ws);
@@ -81,22 +106,52 @@ wss.on("connection", function connection(ws, request) {
             user.rooms = user.rooms.filter(x => x === parsedData.room);
         }
 
+
+
         if (parsedData.type === "chat") {
             const roomId = parsedData.roomId;
+            // console.log(Number(roomId));
+
+            console.log(roomId);
+
             const message = parsedData.message;
+            // const message = JSON.stringify(parsedData.message);
+            console.log(message);
 
             // Do it -> Better approach
             // msg push it to a queue, through a pieline push it to DB eventually
 
             // Dumb approach is
             // First store all msg in the db
-            await client.chat.create({
-                data: {
-                    roomId,
-                    message,
-                    userId
-                }
-            })
+            // let drawMessaage = JSON.parse(message.message);
+            // console.log("From chat", drawMessaage);
+
+
+            const room = await client.room.findUnique({
+                where: { id: Number(roomId) }
+            });
+            
+            if (!room) {
+                console.error("Room does not exist:", roomId);
+                return;
+            }
+            
+
+
+            try {
+                const res = await client.chat.create({
+                    data: {
+                        roomId: Number(roomId),
+                        message,
+                        userId
+                    }                
+                })
+    
+                console.log("inside res---->>>>", res);
+            } catch (error) {
+                console.log("Error from client.chat------>>>", error);                
+            }
+            
 
             // find that userId, those are subscribe to that roomId, send them all msg from db
 
@@ -116,3 +171,23 @@ wss.on("connection", function connection(ws, request) {
     });
 
 }); 
+
+
+
+
+
+
+/*
+
+console.log("parsedData Above---->>>", parsedData);
+            let aparse = data.toString();
+            let b = JSON.parse(aparse);
+            let c = b;
+            if(!c.message) return  null;
+            let finalDrawData = JSON.parse(c.message);
+            console.log("Final Draw Data ---->>>", finalDrawData.shape);
+            console.log("Final Draw Data ---->>>", JSON.stringify(finalDrawData.shape));
+
+
+
+*/
