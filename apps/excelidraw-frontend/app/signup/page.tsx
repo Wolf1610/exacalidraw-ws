@@ -3,10 +3,38 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { UserPlus, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { BACKEND_URL } from '@/api';
 
 export default function SignUpPage() {
   const router = useRouter();
-  
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${BACKEND_URL}/signup`, {
+        username, 
+        password
+      });
+      setMessage(response.data.message);
+      setLoading(false);
+
+      router.push("/signin");
+
+    } catch (error) {
+      setMessage("Sign up Failed");
+      console.log("Error in Signup fe --->", error);
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
       <div className="max-w-md w-full">
@@ -25,26 +53,18 @@ export default function SignUpPage() {
           
           <h2 className="text-3xl font-bold text-center mb-8">Create Account</h2>
           
-          <form className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
-                placeholder="username"
-              />
-            </div>
+          <form className="space-y-6" onSubmit={handleSignup}>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Username
               </label>
               <input
-                type="email"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
                 placeholder="you@example.com"
+                value={username}
+                onChange={(e) => {setUsername(e.target.value)}}
+                required
               />
             </div>
             
@@ -56,14 +76,18 @@ export default function SignUpPage() {
                 type="password"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
                 placeholder="••••••••"
+                value={password}
+                onChange={(e) => {setPassword(e.target.value)}}
+                required
               />
             </div>
             
             <button
               type="submit"
               className="w-full bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold hover:bg-blue-700 transition-colors"
+              disabled={loading}
             >
-              Create Account
+              {loading ? "Creating your Account....." : "Create Account"}
             </button>
           </form>
           
@@ -78,6 +102,7 @@ export default function SignUpPage() {
               </Link>
             </p>
           </div>
+          <p className="text-red-500">{message}</p>
         </div>
       </div>
     </div>

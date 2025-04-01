@@ -137,7 +137,6 @@ wss.on("connection", function connection(ws, request) {
             }
             
 
-
             try {
                 const res = await client.chat.create({
                     data: {

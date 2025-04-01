@@ -2,11 +2,39 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogIn, ArrowLeft } from 'lucide-react';
+import { LogIn, ArrowLeft, Loader } from 'lucide-react';
+import axios from 'axios';
+import { BACKEND_URL } from '@/api';
+import React, { useEffect, useState } from 'react';
+import { getToken, storeToken } from '@/utils/auth';
 
 export default function SignInPage() {
   const router = useRouter();
-  
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSignin = async (e: React.FocusEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data } = await axios.post(`${BACKEND_URL}/signin`, {
+        username,
+        password
+      });
+      // console.log("Data-->>>", data);
+      storeToken(data.token);
+      setMessage("Signin Successfully!");
+      router.push("/dashboard");
+    } catch (error) {
+      setMessage("Login failed");
+      console.log("Login failed--->>", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
       <div className="max-w-md w-full">
@@ -25,15 +53,17 @@ export default function SignInPage() {
           
           <h2 className="text-3xl font-bold text-center mb-8">Welcome Back</h2>
           
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSignin}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Username
               </label>
               <input
-                type="email"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
                 placeholder="you@example.com"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
               />
             </div>
             
@@ -45,6 +75,8 @@ export default function SignInPage() {
                 type="password"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
                 placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
             
@@ -66,8 +98,15 @@ export default function SignInPage() {
             <button
               type="submit"
               className="w-full bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold hover:bg-blue-700 transition-colors"
+              disabled={loading} // disable button when loading
             >
-              Sign In
+              {loading ?(
+                <>
+                  <div><Loader className="animate-spin h-5 w-5 mr-2" />Signing in... </div>
+                </>
+              ) : (
+                "Sign In"
+              )}
             </button>
           </form>
           
@@ -82,6 +121,7 @@ export default function SignInPage() {
               </Link>
             </p>
           </div>
+          <p className="text-red-500">{message}</p>
         </div>
       </div>
     </div>

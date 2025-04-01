@@ -8,6 +8,7 @@ import { client } from "@repo/db/client";
 import middleware from "../middleware/middleware";
 import { JWT } from "@repo/backend-common/config";
 import {createRoomSchema, schemaValidation} from "@repo/common/types";
+import axios from "axios";
 
 const authRouter: Router = express.Router();
 // const client = new PrismaClient();

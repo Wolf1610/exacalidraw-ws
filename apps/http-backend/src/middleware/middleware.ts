@@ -12,7 +12,7 @@ const middleware = (req: Request, res: Response, next: NextFunction) => {
             return res.status(401).json({ message: "Access Denied: Invalid Token Format" });
         }
         const decoded = jwt.verify(token, JWT as string);
-        console.log(decoded);
+        // console.log(decoded);
         if (!decoded || typeof decoded === "string" || !decoded.id) {
             return res.status(403).json({ message: "Invalid Token" });
         } else {
