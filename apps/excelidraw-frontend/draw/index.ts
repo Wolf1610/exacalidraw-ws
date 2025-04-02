@@ -3,7 +3,7 @@ import axios from "axios";
 
 
 type Shape = {
-    type: "rect",
+    type: "rectangle",
     x: number,
     y: number,
     width: number,
@@ -68,14 +68,28 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
         clicked = false;
         const width = e.clientX - startX;
         const height = e.clientY - startY;
-        const shape: Shape = {
-            // @ts-ignore
-            type: window.selectedTool,
-            x: startX,
-            y: startY,
-            height,
-            width
+        // @ts-ignore
+        const selectedTool = window.selectedTool;
+        let shape: Shape | null = null; 
+        if (selectedTool === "rectangle") {
+            shape = {
+                type: "rectangle",
+                x: startX,
+                y: startY,
+                height,
+                width
+            }
+        } else if (selectedTool === "circle") {
+            const radius = Math.max(width, height) / 2 ;
+            shape = {
+                type: "circle",
+                radius: radius,
+                centerX: startX + radius,
+                centerY: startY + radius
+            }
+            
         }
+        if(!shape) return;
         console.log("shape---->>>", shape);
         existingShapes.push(shape);
         socket.send(JSON.stringify({
@@ -97,7 +111,7 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
             ctx.strokeStyle = "rgb(255, 255, 255)";
             // @ts-ignore
             const selectedTool = window.selectedTool;
-            if (selectedTool === "rect") {
+            if (selectedTool === "rectangle") {
                 ctx.strokeRect(startX, startY, width, height);
             }
             else if (selectedTool === "circle") {
@@ -134,15 +148,12 @@ function clearCanvas (
     // console.log(existingShapes);
 
     existingShapes.map((shape) => {
-        if (shape.type === "rect") {
+        if (shape.type === "rectangle") {
             ctx.strokeStyle = "rgba(255, 255, 255)";
             ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
         } else if (shape.type === "circle") {
-            const centerX = startX + width / 2;
-            const centerY = startY + height / 2;
-            const radius = Math.max(width, height) / 2;
             ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+            ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2)
             ctx.stroke();
             ctx.closePath();
         }
